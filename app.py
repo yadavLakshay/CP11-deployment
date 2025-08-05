@@ -103,27 +103,24 @@ if submit:
         **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
     }
 
+    # 1️⃣ Create DataFrame from user input
     df_input = pd.DataFrame([input_dict])
 
-    # 2️⃣ Drop columns not used in encoder
-    drop_if_exists = ['diabetes']  # in case added from old dataset
-    for col in drop_if_exists:
-        if col in df_input.columns:
-            df_input.drop(columns=[col], inplace=True)
+    # 2️⃣ Ensure all expected columns exist (including those used during encoder fitting)
+    # Add placeholder for missing 'diabetes' if required by encoder
+    if 'diabetes' not in df_input.columns:
+        df_input['diabetes'] = 0  # ⚠️ Needed if present in training data used by encoder
 
-    # 3️⃣ Scale numeric features
-    scaled = scaler.transform(df_input[numeric_features])
-
-    # 4️⃣ Encode categorical features
+    # 3️⃣ Encode features using the fitted encoder (includes both categorical + passthrough numeric)
     try:
         encoded = encoder.transform(df_input)
     except ValueError as e:
         st.error(f"Encoding error: {e}")
         st.stop()
 
-    # 5️⃣ Combine processed features
-    # Assumes encoder includes numeric columns already, so no need to stack scaled separately
+    # 4️⃣ Create final DataFrame for prediction
     final_df = pd.DataFrame(encoded, columns=all_features)
+
 
     # ✅ Predict
     prediction = model.predict(final_df)[0]
