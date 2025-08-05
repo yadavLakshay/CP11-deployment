@@ -103,6 +103,7 @@ if submit:
         **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
     }
 
+
     # 1️⃣ Create DataFrame from user input
     df_input = pd.DataFrame([input_dict])
 
@@ -118,6 +119,9 @@ if submit:
         st.error(f"Encoding error: {e}")
         st.stop()
 
+    st.write(f"✅ Encoded shape: {encoded.shape}")
+    st.write(f"✅ all_features length: {len(all_features)}")
+    
     # 4️⃣ Create final DataFrame for prediction
     final_df = pd.DataFrame(encoded, columns=all_features)
 
