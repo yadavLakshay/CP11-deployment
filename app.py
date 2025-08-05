@@ -121,8 +121,12 @@ if submit:
 
 
     # 4️⃣ Create final DataFrame for prediction
-    feature_names = encoder.get_feature_names_out()
-    final_df = pd.DataFrame(encoded, columns=feature_names)
+    # Get encoded array
+    encoded = encoder.transform(df_input)
+
+    # Convert to DataFrame using model-expected feature names
+    final_df = pd.DataFrame(encoded, columns=all_features)
+
 
 
 
