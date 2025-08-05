@@ -110,6 +110,10 @@ if submit:
     encoded = df.drop(columns=numeric_features).values
     final_input = np.hstack([scaled, encoded])
     final_df = pd.DataFrame(final_input, columns=all_features)
+    
+    st.write("Input to model:", final_df)
+    st.write("Columns:", final_df.columns)
+    st.write("Shape:", final_df.shape)
 
     prediction = model.predict(final_df)[0]
     probability = model.predict_proba(final_df)[0][1]
