@@ -48,10 +48,12 @@ st.markdown("Enter the patient information below to predict the likelihood of di
 # -----------------------------
 # ✅ Load model and metadata
 # -----------------------------
-base_path = r"C:\\Users\\ABCD\\_ML projects(SDS)\\_CP11-diabetes\\SDS-CP011-predicting-diabetes\\submissions\\community-contributions\\lakshay_yadav\\lakshay_data"
+base_path = os.path.join(os.path.dirname(__file__), "lakshay_data")
 model = joblib.load(os.path.join(base_path, "best_model_gradient_boosting.pkl"))
 scaler = joblib.load(os.path.join(base_path, "fitted_scaler.pkl"))
-feature_metadata = joblib.load(open(os.path.join(base_path, "feature_metadata.pkl"), "rb"))
+with open(os.path.join(base_path, "feature_metadata.pkl"), "rb") as f:
+    feature_metadata = joblib.load(f)
+
 numeric_features = feature_metadata['numeric_features']
 all_features = feature_metadata['feature_names']
 
