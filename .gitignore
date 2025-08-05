@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pkl
+*.json
+*.ipynb_checkpoints
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+
+# Ignore all files in assets except relevant ones
+assets/*
+!assets/logo.png
+!assets/ui_demo.png
+!assets/banner.png
+!assets/preview_ui.png
+!assets/UI.png
+!assets/feature_importance_best_tuned.png
+!assets/accuracy_comparison_baseline_vs_tuned.png
+!assets/accuracy_f1_comparison.png
+!assets/f1_comparison_baseline_vs_tuned.png
