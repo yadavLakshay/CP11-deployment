@@ -51,6 +51,7 @@ st.markdown("Enter the patient information below to predict the likelihood of di
 base_path = os.path.join(os.path.dirname(__file__), "lakshay_data")
 model = joblib.load(os.path.join(base_path, "best_model_gradient_boosting.pkl"))
 scaler = joblib.load(os.path.join(base_path, "fitted_scaler.pkl"))
+encoder = joblib.load(os.path.join(base_path, "fitted_encoder.pkl"))
 with open(os.path.join(base_path, "feature_metadata.pkl"), "rb") as f:
     feature_metadata = joblib.load(f)
 
@@ -96,24 +97,26 @@ if submit:
         'location': location,
         'hypertension': hypertension,
         'heart_disease': heart_disease,
-        'year': year,
-        **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
+        'year': year
     }
 
-    df = pd.DataFrame([input_dict])
-    for col in all_features:
-        if col not in df.columns:
-            df[col] = 0
-    df = df[all_features]  # ensure proper column order
+    # Add race one-hot encoding manually (assuming model expects it)
+    race_ohe = {f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
+    input_dict.update(race_ohe)
 
-    scaled = scaler.transform(df[numeric_features])
-    encoded = df.drop(columns=numeric_features).values
-    final_input = np.hstack([scaled, encoded])
+    df_input = pd.DataFrame([input_dict])
+
+    # Scale numeric
+    scaled = scaler.transform(df_input[numeric_features])
+
+    # Encode categoricals
+    encoded = encoder.transform(df_input)
+
+    # Combine all processed features
+    final_input = np.hstack([scaled, encoded[:, len(numeric_features):]])  # Avoid duplicating scaled columns
     final_df = pd.DataFrame(final_input, columns=all_features)
-    
-    st.write("Input to model:", final_df)
-    st.write("Columns:", final_df.columns)
-    st.write("Shape:", final_df.shape)
+
+    # st.write("Input to model:", final_df)
 
     prediction = model.predict(final_df)[0]
     probability = model.predict_proba(final_df)[0][1]
