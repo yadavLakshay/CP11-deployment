@@ -119,11 +119,11 @@ if submit:
         st.error(f"Encoding error: {e}")
         st.stop()
 
-    st.write(f"✅ Encoded shape: {encoded.shape}")
-    st.write(f"✅ all_features length: {len(all_features)}")
-    
+
     # 4️⃣ Create final DataFrame for prediction
-    final_df = pd.DataFrame(encoded, columns=all_features)
+    feature_names = encoder.get_feature_names_out()
+    final_df = pd.DataFrame(encoded, columns=feature_names)
+
 
 
     # ✅ Predict
