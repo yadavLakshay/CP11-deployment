@@ -87,6 +87,7 @@ with st.form("prediction_form"):
 # 🔮 Prediction Logic
 # -----------------------------
 if submit:
+    # 1️⃣ Prepare raw input dictionary
     input_dict = {
         'age': age,
         'bmi': bmi,
@@ -97,27 +98,34 @@ if submit:
         'location': location,
         'hypertension': hypertension,
         'heart_disease': heart_disease,
-        'year': year
+        'year': year,
+        # manually encoded race
+        **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
     }
-
-    # Add race one-hot encoding manually (assuming model expects it)
-    race_ohe = {f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
-    input_dict.update(race_ohe)
 
     df_input = pd.DataFrame([input_dict])
 
-    # Scale numeric
+    # 2️⃣ Drop columns not used in encoder
+    drop_if_exists = ['diabetes']  # in case added from old dataset
+    for col in drop_if_exists:
+        if col in df_input.columns:
+            df_input.drop(columns=[col], inplace=True)
+
+    # 3️⃣ Scale numeric features
     scaled = scaler.transform(df_input[numeric_features])
 
-    # Encode categoricals
-    encoded = encoder.transform(df_input)
+    # 4️⃣ Encode categorical features
+    try:
+        encoded = encoder.transform(df_input)
+    except ValueError as e:
+        st.error(f"Encoding error: {e}")
+        st.stop()
 
-    # Combine all processed features
-    final_input = np.hstack([scaled, encoded[:, len(numeric_features):]])  # Avoid duplicating scaled columns
-    final_df = pd.DataFrame(final_input, columns=all_features)
+    # 5️⃣ Combine processed features
+    # Assumes encoder includes numeric columns already, so no need to stack scaled separately
+    final_df = pd.DataFrame(encoded, columns=all_features)
 
-    # st.write("Input to model:", final_df)
-
+    # ✅ Predict
     prediction = model.predict(final_df)[0]
     probability = model.predict_proba(final_df)[0][1]
 
@@ -155,6 +163,7 @@ if submit:
         "Your Value": [bmi, hbA1c, glucose],
         "Healthy Range": list(healthy_ranges.values())
     }))
+
 
 # -----------------------------
 # 📈 Feature Importance with Plotly
