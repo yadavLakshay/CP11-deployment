@@ -87,7 +87,7 @@ with st.form("prediction_form"):
 # 🔮 Prediction Logic
 # -----------------------------
 if submit:
-    # === Step 1: Collect Input ===
+    # 1️⃣ Prepare raw input dictionary
     input_dict = {
         'age': age,
         'bmi': bmi,
@@ -102,23 +102,31 @@ if submit:
         **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
     }
 
+    # 2️⃣ Create DataFrame from input
     df_input = pd.DataFrame([input_dict])
 
-    # === Step 2: Add missing columns if required
-    if 'diabetes' not in df_input.columns:
-        df_input['diabetes'] = 0  # Required because encoder expects it
+    # 3️⃣ Add 'diabetes' column if encoder requires it
+    if 'diabetes' not in df_input.columns and 'diabetes' in encoder.feature_names_in_:
+        df_input['diabetes'] = 0
 
-    # === Step 3: Encode features
+    # 4️⃣ Encode features
     try:
         encoded = encoder.transform(df_input)
     except ValueError as e:
         st.error(f"Encoding error: {e}")
         st.stop()
 
-    # === Step 4: Create final input DataFrame
-    final_df = pd.DataFrame(encoded, columns=all_features)
+    # 5️⃣ Handle extra column case
+    encoded_columns = encoder.get_feature_names_out()
+    if encoded.shape[1] != len(all_features):
+        st.warning("Column mismatch detected — aligning to expected feature set.")
+        final_df = pd.DataFrame(encoded, columns=encoded_columns)
+        # Keep only the features used in model
+        final_df = final_df[[col for col in all_features if col in final_df.columns]]
+    else:
+        final_df = pd.DataFrame(encoded, columns=all_features)
 
-    # === Step 5: Predict
+    # ✅ Predict
     prediction = model.predict(final_df)[0]
     probability = model.predict_proba(final_df)[0][1]
 
