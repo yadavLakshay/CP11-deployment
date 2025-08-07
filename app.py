@@ -116,15 +116,18 @@ if submit:
         st.error(f"Encoding error: {e}")
         st.stop()
 
-    # 5️⃣ Handle extra column case
+    # 5️⃣ Align encoded output with expected model features
     encoded_columns = encoder.get_feature_names_out()
-    if encoded.shape[1] != len(all_features):
-        st.warning("Column mismatch detected — aligning to expected feature set.")
-        final_df = pd.DataFrame(encoded, columns=encoded_columns)
-        # Keep only the features used in model
-        final_df = final_df[[col for col in all_features if col in final_df.columns]]
-    else:
-        final_df = pd.DataFrame(encoded, columns=all_features)
+    encoded_df = pd.DataFrame(encoded, columns=encoded_columns)
+
+    # Add missing columns if needed
+    for col in all_features:
+        if col not in encoded_df.columns:
+            encoded_df[col] = 0
+
+    # Reorder to match model training feature order
+    final_df = encoded_df[all_features]
+
 
     # ✅ Predict
     prediction = model.predict(final_df)[0]
