@@ -6,7 +6,7 @@ This repository hosts the **Streamlit Cloud deployment** for the CP11 SuperDataS
 ---
 
 ## 🚀 Live App
-🔗 [Click here to try the app](https://lakshayyadav-cp11-deployment.streamlit.app)
+🔗 [Click here to try the app](https://yadavlakshay-cp11-deployment-app-34llpn.streamlit.app/)
 
 ---
 
