@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 # -----------------------------
 # ✅ Styling and Page Config
 # -----------------------------
-st.set_page_config(page_title="🩺 Diabetes Risk Predictor", layout="wide")
+st.set_page_config(page_title="🪸 Diabetes Risk Predictor", layout="wide")
 
 st.markdown("""
     <style>
@@ -42,7 +42,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🩺 Diabetes Risk Predictor")
+st.title("🪸 Diabetes Risk Predictor")
 st.markdown("Enter the patient information below to predict the likelihood of diabetes.")
 
 # -----------------------------
@@ -59,7 +59,7 @@ numeric_features = feature_metadata['numeric_features']
 all_features = feature_metadata['feature_names']
 
 # -----------------------------
-# 📥 Input Form
+# 📅 Input Form
 # -----------------------------
 with st.form("prediction_form"):
     st.subheader("📋 Clinical & Demographic Inputs")
@@ -87,7 +87,7 @@ with st.form("prediction_form"):
 # 🔮 Prediction Logic
 # -----------------------------
 if submit:
-    # 1️⃣ Prepare raw input dictionary
+    # === Step 1: Collect Input ===
     input_dict = {
         'age': age,
         'bmi': bmi,
@@ -99,42 +99,30 @@ if submit:
         'hypertension': hypertension,
         'heart_disease': heart_disease,
         'year': year,
-        # manually encoded race
         **{f"race:{r}": 1 if r == race else 0 for r in ['Hispanic', 'Asian', 'AfricanAmerican', 'Caucasian', 'Other']}
     }
 
-
-    # 1️⃣ Create DataFrame from user input
     df_input = pd.DataFrame([input_dict])
 
-    # 2️⃣ Ensure all expected columns exist (including those used during encoder fitting)
-    # Add placeholder for missing 'diabetes' if required by encoder
+    # === Step 2: Add missing columns if required
     if 'diabetes' not in df_input.columns:
-        df_input['diabetes'] = 0  # ⚠️ Needed if present in training data used by encoder
+        df_input['diabetes'] = 0  # Required because encoder expects it
 
-    # 3️⃣ Encode features using the fitted encoder (includes both categorical + passthrough numeric)
+    # === Step 3: Encode features
     try:
         encoded = encoder.transform(df_input)
     except ValueError as e:
         st.error(f"Encoding error: {e}")
         st.stop()
 
-
-    # 4️⃣ Create final DataFrame for prediction
-    # Get encoded array
-    encoded = encoder.transform(df_input)
-
-    # Convert to DataFrame using model-expected feature names
+    # === Step 4: Create final input DataFrame
     final_df = pd.DataFrame(encoded, columns=all_features)
 
-
-
-
-    # ✅ Predict
+    # === Step 5: Predict
     prediction = model.predict(final_df)[0]
     probability = model.predict_proba(final_df)[0][1]
 
-    # 📊 Animated Gauge Chart
+    # === Step 6: Display Results
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=probability * 100,
@@ -151,12 +139,10 @@ if submit:
     ))
     st.plotly_chart(fig, use_container_width=True)
 
-    # 🧾 Result Summary
     result_text = "Diabetes" if prediction == 1 else "No Diabetes"
     st.success(f"**Prediction:** {result_text}")
     st.info(f"**Probability:** {probability:.2%}")
 
-    # ⚖️ Comparison vs Healthy Thresholds
     st.markdown("### 📊 Comparison vs Healthy Guidelines")
     healthy_ranges = {
         "BMI": "18.5–24.9",
@@ -169,9 +155,8 @@ if submit:
         "Healthy Range": list(healthy_ranges.values())
     }))
 
-
 # -----------------------------
-# 📈 Feature Importance with Plotly
+# 📈 Feature Importance
 # -----------------------------
 st.markdown("### 📈 Feature Importance (Top 5 Features)")
 
